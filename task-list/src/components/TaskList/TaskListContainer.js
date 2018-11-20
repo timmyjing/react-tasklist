@@ -11,8 +11,6 @@ export default class TaskListContainer extends React.Component {
       showGroup: false,
       tasks: TASKS,
     };
-    this.renderGroups = this.renderGroups.bind(this);
-    this.renderGroup = this.renderGroup.bind(this);
     this.toggleTask = this.toggleTask.bind(this);
     this.toggleShow = this.toggleShow.bind(this);
   }
@@ -31,43 +29,14 @@ export default class TaskListContainer extends React.Component {
     this.setState({showGroup: group});
   }
 
-  renderGroups() {
-    const { tasks } = this.state;
-    // count the type of tasks and how many were completed
-    const count = {};
-
-    tasks.forEach( task => {
-      if (count[task.group] === undefined ) {
-        count[task.group] = {
-          count: 1,
-          completed: task.completedAt ? 1 : 0,
-        };
-      } else {
-        count[task.group].count++;
-        if (task.completedAt) count[task.group].completed++; 
-      }
-    })
-
-    const groups = Object.keys(count);
-
-    return <TaskGroupsIndex groups={groups} count={count} toggleShow={this.toggleShow}/>;
-  }
-
-  renderGroup(group) {
-    const allTasks = this.state.tasks;
-    const tasks = allTasks.filter( task => task.group === group);
-    const byId = {};
-    allTasks.forEach( task => byId[task.id] = task)
-// have to determine if tasks are completable by dependencies
-    console.log(tasks);
-    return <TaskGroupList toggleTask={this.toggleTask} tasks={tasks} byId={byId} group={group}/>;
-  }
-
   render() {
-    const {showGroup} = this.state;
+    const {tasks, showGroup} = this.state;
+
     return (
-      <div>
-        {showGroup ? this.renderGroup(showGroup) : this.renderGroups()}
+      <div className="task-list-container">
+        {showGroup ? 
+        <TaskGroupList toggleTask={this.toggleTask} allTasks={tasks} group={showGroup} toggleShow={this.toggleShow}/> : 
+        <TaskGroupsIndex tasks={tasks} toggleShow={this.toggleShow}/>}
       </div>
     )
   }

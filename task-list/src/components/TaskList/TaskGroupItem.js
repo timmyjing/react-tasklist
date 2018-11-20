@@ -3,10 +3,16 @@ import Group from '../../Group.svg';
 
 
 const TaskGroupItem = ({group, count, toggleShow}) => {
+
   return (
-    <div onClick={() => toggleShow(group)}>
-      <h3><img src={Group} /> {group}</h3>
-      <p>{count.completed} Of {count.count} Tasks Complete</p>
+    <div className="task-item" onClick={() => toggleShow(group)}>
+      <div>
+        <img src={Group} className="logo"/>
+      </div>
+      <div className="left-align">
+        <h2>{group}</h2>
+        <p>{count.completed} Of {count.count} Tasks Complete</p>
+      </div>
     </div>
   )
 };
