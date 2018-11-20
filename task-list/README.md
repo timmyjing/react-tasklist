@@ -1,44 +1,157 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This challenge includes three steps: 1. build a front-end react UI for a basic Task List, 2. design a database schema to store the task list data, and 3. document an API for a front-end to talk to the back-end.
 
-## Available Scripts
+SCORING CRITERIA
 
-In the project directory, you can run:
+As an engineering team we focus on clear conventions, best practices, and code quality.
+We'll look for clear structure and naming, thoughtful organization of files and components,
+and keeping things simple. We're also kind of picky about bugs, so we'll test the react app to
+make sure everything aligns to the above criteria.
 
-### `npm start`
+Please do not write any code for a back-end or anything out of scope of the questions.
+Stay focused on front-end react code, API documentation, and database schema.
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+This is your chance to lay out a project as you think it should be done, so focus on doing it
+"the right way" rather than throwing in all the bells and whistles.
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
 
-### `npm test`
+1. Build the UI for a grouped task list with task dependencies
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+* Build a task list UI in React using included design and SVG assets
+* The top level should show a list of task groups w/ # of tasks inside
+* Clicking a group should display the list of all tasks for that group
+* Tasks remain locked until all dependent tasks are complete
+* Clicking a task should mark it as complete or incomplete, unless the task is locked
+* Keep it simple and focus on building well-designed React components. Don't worry about talking to an API, tests, or state management libraries
+* Use the data below to populate the UI
 
-### `npm run build`
+Task Payload to Use for UI:
+[
+  {
+    id: 1,
+    group: "Purchases",
+    task: "Go to the bank",
+    dependencyIds: [],
+    completedAt: null,
+  },
+  {
+    id: 2,
+    group: "Purchases",
+    task: "Buy hammer",
+    dependencyIds: [1],
+    completedAt: null,
+  },
+  {
+    id: 3,
+    group: "Purchases",
+    task: "Buy wood",
+    dependencyIds: [1],
+    completedAt: null,
+  },
+  {
+    id: 4,
+    group: "Purchases",
+    task: "Buy nails",
+    dependencyIds: [1],
+    completedAt: null,
+  },
+  {
+    id: 5,
+    group: "Purchases",
+    task: "Buy paint",
+    dependencyIds: [1],
+    completedAt: null,
+  },
+  {
+    id: 6,
+    group: "Build Airplane",
+    task: "Hammer nails into wood",
+    dependencyIds: [2, 3, 4],
+    completedAt: null,
+  },
+  {
+    id: 7,
+    group: "Build Airplane",
+    task: "Paint wings",
+    dependencyIds: [5, 6],
+    completedAt: null,
+  },
+  {
+    id: 8,
+    group: "Build Airplane",
+    task: "Have a snack",
+    dependencyIds: [],
+    completedAt: null,
+  }
+]
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. Design the SQL database schema to store all required task list data.
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+* Schema should define all tables, columns, and constraints
+* Schema should be written in SQL
+* Feel free to add any additional commentary as to why certain decisions were made
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Answer: 
+I would need a Users table, a Tasks table along with a table to join them together. There will be a User has many tasks relationship in order to store Tasks under a certain user. The Tasks table would have the columns ID, Group, Task, CompletedAt. Task dependencies will be managed by a self joining table which joins Tasks to Tasks. A task will have a has many relationship to tasks in order to manage dependencies and to normalize the data. Another constraint is to only allow users to create tasks for themselves and add dependencies to tasks they've created. Tasks will be looked up by the user and then joined with the Task Dependencies table in order to get the dependency IDs for each task. This will take care of the problem of having to search for more and more nested dependencies.
 
-### `npm run eject`
+Schema
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+CREATE TABLE Users {
+  id INT NOT NULL PRIMARY KEY,
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL
+}
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+CREATE TABLE Tasks (
+  id INT NOT NULL PRIMARY KEY,
+  group VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  completed timestamp NULL,
+  created timestamp DEFAULT CURRENT_TIMESTAMP,
+  user_id INT NOT NULL FOREIGN KEY REFERENCES Users(id)
+);
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+CREATE TABLE TaskDependencies {
+  id INT NOT NULL PRIMARY KEY,
+  task_id INT NOT NULL,
+  dependency_id INT NOT NULL
+}
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Notes: Null is allowed on the completed column in order to undo a task and to signify that it is not completed.
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+3. Document an HTTP API for checking and unchecking a Task
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+* API should only be documented, no need to implement anything in code
+* Include URL, request payload format, and response payload format for success and errors
+* No need to get fancy w/ formatting or overly descriptive
+* Don’t feel constrained by the payload in question 1 - design what you think is a good API
+
+Answer: 
+
+The API endpoint for checking and unchecking a task will be /tasks/:id and would accept a PATCH HTTP method. In order to update
+a task, include the id into the endpoint and pass a payload with the completion timestamp if completing a task or null if 
+unchecking a task. The task must also be registered under the current user or else access will be denied. Upon success, a response with the task id and the updated completion time will be sent as a payload. If there is a failure, an error status will be provided in the payload along with a descriptive message.
+
+Sample Request Payload for unchecking a task: { completedAt: null }.
+
+Sample Successful Response Payload for unchecking a task: { id: 1, completedAt: null }.
+
+Sample Error Response Payload { status: 400, message: 'Cannot complete task due to dependency' } or {status: 403, message: 'Task does not belong to current user'}.
+
+## Directions to Start:
+npm install
+npm start
+
+This app was created using CreateReactApp. The hierarchy of the components is displayed below.
+
+TaskListContainer - High Level Component
+  - TaskGroupList
+    - TaskGroupItem
+  - TaskGroupDetail
+    - TaskItem
+
+The UI state by default shows a list of the different groups of tasks. If a group item is clicked, then the UI state will be changed to show the specific group. This is done to keep things simple and because of the unidirectional data flow, functions from the top level will need be needed to change the state data due to the dependencies. Therefore, the top level component must not be unmounted in order for the task data to persist and to allow the data to be updated and correctly rendered. Functions will handle changing the task completed state and also handle changing the UI state. Clicking the group items will change UI state to display group details. Clicking the back to groups will change UI state to display list of groups.
+
+Something I would address is how to manage a task that is completed but then has one of its dependencies marked incomplete. Should this task with the dependency also reset?
+
+Total Time took about ~4-5 hours to complete.
