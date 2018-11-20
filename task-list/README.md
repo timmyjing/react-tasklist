@@ -1,3 +1,29 @@
+## Directions to Start:
+npm install
+npm start
+
+
+## Design
+This app was created using CreateReactApp. The hierarchy of the components is displayed below.
+
+TaskListContainer - High Level Component
+  - TaskGroupList
+    - TaskGroupItem
+  - TaskGroupDetail
+    - TaskItem
+
+The UI state by default shows a list of the different groups of tasks. If a group item is clicked, then the UI state will be changed to show the specific group. This is done to keep things simple and because of the unidirectional data flow, functions from the top level will need be needed to change the state data due to the dependencies. Therefore, the top level component must not be unmounted in order for the task data to persist and to allow the data to be updated and correctly rendered. Functions will handle changing the task completed state and also handle changing the UI state. Clicking the group items will change UI state to display group details. Clicking the back to groups will change UI state to display list of groups.
+
+Something I would address is how to manage a task that is completed but then has one of its dependencies marked incomplete. Should this task with the dependency also reset?
+
+Total Time took about ~4-5 hours to complete.
+
+Answers are provided for questions below.
+
+
+
+# PROMPT
+
 This challenge includes three steps: 1. build a front-end react UI for a basic Task List, 2. design a database schema to store the task list data, and 3. document an API for a front-end to talk to the back-end.
 
 SCORING CRITERIA
@@ -90,11 +116,11 @@ Task Payload to Use for UI:
 * Schema should be written in SQL
 * Feel free to add any additional commentary as to why certain decisions were made
 
-Answer: 
+## Answer
 I would need a Users table, a Tasks table along with a table to join them together. There will be a User has many tasks relationship in order to store Tasks under a certain user. The Tasks table would have the columns ID, Group, Task, CompletedAt. Task dependencies will be managed by a self joining table which joins Tasks to Tasks. A task will have a has many relationship to tasks in order to manage dependencies and to normalize the data. Another constraint is to only allow users to create tasks for themselves and add dependencies to tasks they've created. Tasks will be looked up by the user and then joined with the Task Dependencies table in order to get the dependency IDs for each task. This will take care of the problem of having to search for more and more nested dependencies.
 
 Schema
-
+```
 CREATE TABLE Users {
   id INT NOT NULL PRIMARY KEY,
   first_name VARCHAR(255) NOT NULL,
@@ -115,6 +141,7 @@ CREATE TABLE TaskDependencies {
   task_id INT NOT NULL,
   dependency_id INT NOT NULL
 }
+```
 
 Notes: Null is allowed on the completed column in order to undo a task and to signify that it is not completed.
 
@@ -126,8 +153,7 @@ Notes: Null is allowed on the completed column in order to undo a task and to si
 * No need to get fancy w/ formatting or overly descriptive
 * Don’t feel constrained by the payload in question 1 - design what you think is a good API
 
-Answer: 
-
+## Answer
 The API endpoint for checking and unchecking a task will be /tasks/:id and would accept a PATCH HTTP method. In order to update
 a task, include the id into the endpoint and pass a payload with the completion timestamp if completing a task or null if 
 unchecking a task. The task must also be registered under the current user or else access will be denied. Upon success, a response with the task id and the updated completion time will be sent as a payload. If there is a failure, an error status will be provided in the payload along with a descriptive message.
@@ -137,21 +163,3 @@ Sample Request Payload for unchecking a task: { completedAt: null }.
 Sample Successful Response Payload for unchecking a task: { id: 1, completedAt: null }.
 
 Sample Error Response Payload { status: 400, message: 'Cannot complete task due to dependency' } or {status: 403, message: 'Task does not belong to current user'}.
-
-## Directions to Start:
-npm install
-npm start
-
-This app was created using CreateReactApp. The hierarchy of the components is displayed below.
-
-TaskListContainer - High Level Component
-  - TaskGroupList
-    - TaskGroupItem
-  - TaskGroupDetail
-    - TaskItem
-
-The UI state by default shows a list of the different groups of tasks. If a group item is clicked, then the UI state will be changed to show the specific group. This is done to keep things simple and because of the unidirectional data flow, functions from the top level will need be needed to change the state data due to the dependencies. Therefore, the top level component must not be unmounted in order for the task data to persist and to allow the data to be updated and correctly rendered. Functions will handle changing the task completed state and also handle changing the UI state. Clicking the group items will change UI state to display group details. Clicking the back to groups will change UI state to display list of groups.
-
-Something I would address is how to manage a task that is completed but then has one of its dependencies marked incomplete. Should this task with the dependency also reset?
-
-Total Time took about ~4-5 hours to complete.
