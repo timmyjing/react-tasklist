@@ -1,9 +1,7 @@
 import React from 'react';
 import { TASKS } from '../../tasks';
-import Completed from '../../Completed.svg';
-import Group from '../../Group.svg';
-import Locked from '../../Locked.svg';
-import Incomplete from '../../Incomplete.svg';
+import TaskGroupsIndex from './TaskGroupsIndex';
+import TaskGroupList from '../TaskGroupList/TaskGroupList';
 
 
 export default class TaskListContainer extends React.Component {
@@ -16,6 +14,7 @@ export default class TaskListContainer extends React.Component {
     this.renderGroups = this.renderGroups.bind(this);
     this.renderGroup = this.renderGroup.bind(this);
     this.toggleTask = this.toggleTask.bind(this);
+    this.toggleShow = this.toggleShow.bind(this);
   }
 
   toggleTask(id) {
@@ -26,6 +25,10 @@ export default class TaskListContainer extends React.Component {
     })
 
     this.setState({tasks});
+  }
+
+  toggleShow(group = false) {
+    this.setState({showGroup: group});
   }
 
   renderGroups() {
@@ -47,17 +50,7 @@ export default class TaskListContainer extends React.Component {
 
     const groups = Object.keys(count);
 
-    return (
-      <div>
-      <h2>Things To Do</h2>
-      {groups.map((group, idx) => {
-        return <div onClick={() => this.setState({showGroup: group})}>
-          <h3>{group}</h3>
-          <h3>{count[group].completed} Of {count[group].count} Tasks Complete</h3>
-        </div>
-      })}
-      </div>
-    )
+    return <TaskGroupsIndex groups={groups} count={count} toggleShow={this.toggleShow}/>;
   }
 
   renderGroup(group) {
@@ -67,20 +60,7 @@ export default class TaskListContainer extends React.Component {
     allTasks.forEach( task => byId[task.id] = task)
 // have to determine if tasks are completable by dependencies
     console.log(tasks);
-    return (<div>
-      <div onClick={() => this.setState({showGroup: false})}>Back to Groups</div>
-      <h2>{group}</h2>
-      {tasks.map(task => {
-        let locked = false;
-        task.dependencyIds.forEach( id => {
-          if (byId[id].completedAt === null) locked = true;
-        })
-
-        return <div onClick={ locked ? null : () => this.toggleTask(task.id)}>
-          <img src={locked ? Locked : (task.completedAt ? Completed : Incomplete)} />
-          {task.task}
-        </div>})}
-    </div>)
+    return <TaskGroupList toggleTask={this.toggleTask} tasks={tasks} byId={byId} group={group}/>;
   }
 
   render() {
